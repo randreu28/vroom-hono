@@ -1,0 +1,3 @@
+vroom.ecodeliver.tech {
+    reverse_proxy vroom:3000
+} 

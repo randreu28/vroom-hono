@@ -1,0 +1,15 @@
+FROM ghcr.io/project-osrm/osrm-backend
+
+WORKDIR /data
+
+# Gets the Catalunya dataset
+RUN apk add --no-cache wget
+RUN wget http://download.geofabrik.de/europe/spain/cataluna-latest.osm.pbf
+
+# Generates some configuration files with said dataset
+RUN osrm-extract -p /opt/car.lua cataluna-latest.osm.pbf
+RUN osrm-partition cataluna-latest.osrm
+RUN osrm-customize cataluna-latest.osrm
+
+# Spins up
+CMD ["osrm-routed", "--algorithm", "mld", "/data/cataluna-latest.osrm"]
