@@ -1,4 +1,6 @@
 import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
+import solveRequestExample from "@/examples/solve_request.json";
+import solveResponseExample from "@/examples/solve_response.json";
 import { jobsSchema } from "@/schemas/jobs";
 import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
@@ -24,6 +26,7 @@ export const solveRoute = createRoute({
 			content: {
 				"application/json": {
 					schema: solveRequestSchema,
+					example: solveRequestExample,
 				},
 			},
 		},
@@ -33,9 +36,46 @@ export const solveRoute = createRoute({
 			content: {
 				"application/json": {
 					schema: outputSchema,
+					example: solveResponseExample,
 				},
 			},
-			description: "VROOM output envelope.",
+			description: "VROOM solved the request successfully.",
+		},
+		400: {
+			content: {
+				"application/json": {
+					schema: outputSchema,
+					example: {
+						code: 2,
+						error: "The request payload is invalid.",
+					},
+				},
+			},
+			description: "The request is invalid.",
+		},
+		413: {
+			content: {
+				"application/json": {
+					schema: outputSchema,
+					example: {
+						code: 2,
+						error: "The request payload is too large.",
+					},
+				},
+			},
+			description: "The request payload is too large.",
+		},
+		500: {
+			content: {
+				"application/json": {
+					schema: outputSchema,
+					example: {
+						code: 1,
+						error: "Solving is not implemented.",
+					},
+				},
+			},
+			description: "The server failed to process the request.",
 		},
 	},
 });
@@ -43,8 +83,11 @@ export const solveRoute = createRoute({
 export const solveHandler: RouteHandler<typeof solveRoute> = (c) => {
 	c.req.valid("json");
 
-	return c.json({
-		code: 1,
-		error: "Solving is not implemented.",
-	});
+	return c.json(
+		{
+			code: 1,
+			error: "Solving is not implemented.",
+		},
+		500,
+	);
 };
