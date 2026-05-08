@@ -1,7 +1,27 @@
-import { Hono } from "hono";
+import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
 
-const health = new Hono();
+const healthResponseSchema = z.object({
+	status: z.string(),
+});
 
-health.get("/", (c) => c.json({ status: "operational" }));
+export const healthRoute = createRoute({
+	method: "get",
+	path: "/health",
+	tags: ["Health"],
+	summary: "Health check",
+	description: "Lightweight liveness endpoint.",
+	responses: {
+		200: {
+			description: "Service is operational.",
+			content: {
+				"application/json": {
+					schema: healthResponseSchema,
+					example: { status: "operational" },
+				},
+			},
+		},
+	},
+});
 
-export default health;
+export const healthHandler: RouteHandler<typeof healthRoute> = (c) =>
+	c.json({ status: "operational" });

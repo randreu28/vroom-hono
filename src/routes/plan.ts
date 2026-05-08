@@ -1,32 +1,39 @@
 import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
-import solveRequestExample from "@/examples/solve_request.json";
-import solveResponseExample from "@/examples/solve_response.json";
+import planRequestExample from "@/examples/plan_request.json";
+import planResponseExample from "@/examples/plan_response.json";
 import { jobsSchema } from "@/schemas/jobs";
 import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
 import { shipmentsSchema } from "@/schemas/shipments";
-import { vehiclesSchema } from "@/schemas/vehicles";
+import { vehicleSchema, vehicleStepSchema } from "@/schemas/vehicles";
 
-const solveRequestSchema = z.object({
-	vehicles: vehiclesSchema,
+const planVehicleSchema = vehicleSchema.extend({
+	steps: z
+		.array(vehicleStepSchema)
+		.min(1)
+		.openapi({ description: "Required custom route description in plan mode." }),
+});
+
+const planRequestSchema = z.object({
+	vehicles: z.array(planVehicleSchema).min(1),
 	jobs: jobsSchema.optional(),
 	shipments: shipmentsSchema.optional(),
 	matrices: matricesSchema.optional(),
 });
 
-export const solveRoute = createRoute({
+export const planRoute = createRoute({
 	method: "post",
-	path: "/solve",
+	path: "/plan",
 	tags: ["Route optimization endpoints"],
-	summary: "Solve",
+	summary: "Plan",
 	description:
-		"The default solving mode takes as input the description of a vehicle routing problem and outputs a set of routes matching all constraints.",
+		"Compute ETA for a user-provided route plan. All constraints are treated as soft constraints and violations are reported.",
 	request: {
 		body: {
 			content: {
 				"application/json": {
-					schema: solveRequestSchema,
-					example: solveRequestExample,
+					schema: planRequestSchema,
+					example: planRequestExample,
 				},
 			},
 		},
@@ -36,10 +43,10 @@ export const solveRoute = createRoute({
 			content: {
 				"application/json": {
 					schema: outputSchema,
-					example: solveResponseExample,
+					example: planResponseExample,
 				},
 			},
-			description: "VROOM solved the request successfully.",
+			description: "VROOM planned the request successfully.",
 		},
 		400: {
 			content: {
@@ -71,7 +78,7 @@ export const solveRoute = createRoute({
 					schema: outputSchema,
 					example: {
 						code: 1,
-						error: "Solving is not implemented.",
+						error: "Planning is not implemented.",
 					},
 				},
 			},
@@ -80,14 +87,15 @@ export const solveRoute = createRoute({
 	},
 });
 
-export const solveHandler: RouteHandler<typeof solveRoute> = (c) => {
+export const planHandler: RouteHandler<typeof planRoute> = (c) => {
 	c.req.valid("json");
 
 	return c.json(
 		{
 			code: 1,
-			error: "Solving is not implemented.",
+			error: "Planning is not implemented.",
 		},
 		500,
 	);
 };
+

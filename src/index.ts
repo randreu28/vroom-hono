@@ -1,7 +1,8 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import { logger } from "hono/logger";
-import health from "@/routes/health";
+import { healthHandler, healthRoute } from "@/routes/health";
+import { planHandler, planRoute } from "@/routes/plan";
 import { solveHandler, solveRoute } from "@/routes/solve";
 
 export const app = new OpenAPIHono();
@@ -9,7 +10,8 @@ export const app = new OpenAPIHono();
 app.use(logger());
 
 app.openapi(solveRoute, solveHandler);
-app.route("/health", health);
+app.openapi(planRoute, planHandler);
+app.openapi(healthRoute, healthHandler);
 
 app.doc("/docs.json", {
 	openapi: "3.0.0",
@@ -19,6 +21,10 @@ app.doc("/docs.json", {
 		version: "0.0.0",
 	},
 	tags: [
+		{
+			name: "Health",
+			description: "Service health and readiness endpoints.",
+		},
 		{
 			name: "Route optimization endpoints",
 			description:
