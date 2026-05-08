@@ -1,33 +1,24 @@
 import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
-
-const locationSchema = z
-	.tuple([z.number(), z.number()])
-	.openapi({ example: [2.1734, 41.3851] });
-
-const vehicleSchema = z.object({
-	id: z.number().int().nonnegative().openapi({ example: 1 }),
-	start: locationSchema,
-	end: locationSchema.optional(),
-});
-
-const jobSchema = z.object({
-	id: z.number().int().nonnegative().openapi({ example: 1 }),
-	location: locationSchema,
-});
+import { jobsSchema } from "@/schemas/jobs";
+import { matricesSchema } from "@/schemas/matrices";
+import { outputSchema } from "@/schemas/output";
+import { shipmentsSchema } from "@/schemas/shipments";
+import { vehiclesSchema } from "@/schemas/vehicles";
 
 const solveRequestSchema = z.object({
-	vehicles: z.array(vehicleSchema).min(1),
-	jobs: z.array(jobSchema).min(1),
-});
-
-const solveResponseSchema = z.object({
-	ok: z.boolean(),
-	request: solveRequestSchema,
+	vehicles: vehiclesSchema,
+	jobs: jobsSchema.optional(),
+	shipments: shipmentsSchema.optional(),
+	matrices: matricesSchema.optional(),
 });
 
 export const solveRoute = createRoute({
 	method: "post",
 	path: "/solve",
+	tags: ["Route optimization endpoints"],
+	summary: "Solve",
+	description:
+		"Submit your scenario, and get optimal routes back—fast and efficient.",
 	request: {
 		body: {
 			content: {
@@ -41,15 +32,19 @@ export const solveRoute = createRoute({
 		200: {
 			content: {
 				"application/json": {
-					schema: solveResponseSchema,
+					schema: outputSchema,
 				},
 			},
-			description: "Validated request payload (no solving performed).",
+			description: "VROOM output envelope.",
 		},
 	},
 });
 
 export const solveHandler: RouteHandler<typeof solveRoute> = (c) => {
-	const request = c.req.valid("json");
-	return c.json({ ok: true, request });
+	c.req.valid("json");
+
+	return c.json({
+		code: 1,
+		error: "Solving is not implemented.",
+	});
 };

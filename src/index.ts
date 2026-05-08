@@ -18,6 +18,13 @@ app.doc("/docs.json", {
 		description: "A REST API for the Vroom routing engine.",
 		version: "0.0.0",
 	},
+	tags: [
+		{
+			name: "Route optimization endpoints",
+			description:
+				"Endpoints for solving complex route optimization problems. Submit your scenario, and get optimal routes back—fast and efficient.",
+		},
+	],
 });
 
 app.get("/docs", Scalar({ url: "/docs.json" }));
