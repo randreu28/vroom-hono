@@ -7,7 +7,7 @@ import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
 import { shipmentsSchema } from "@/schemas/shipments";
 import { vehiclesSchema } from "@/schemas/vehicles";
-import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { vroomCodesToHttpCodes } from "@/utils";
 
 const solveRequestSchema = z.object({
 	vehicles: vehiclesSchema,
@@ -103,29 +103,5 @@ export const solveHandler: RouteHandler<typeof solveRoute> = async (c) => {
 	}
 	const output = res.data;
 
-	let httpStatusCode: ContentfulStatusCode = 500;
-	switch (output.code) {
-		case 0:
-			// No error raised
-			httpStatusCode = 200;
-			break;
-		case 1:
-			// Internal error
-			httpStatusCode = 500;
-			break;
-		case 2:
-			// Input error
-			httpStatusCode = 400;
-			break;
-		case 3:
-			// routing error
-			httpStatusCode = 500;
-			break;
-		default:
-			// Internal error
-			httpStatusCode = 500;
-			break;
-	}
-
-	return c.json(output, httpStatusCode);
+	return c.json(output, vroomCodesToHttpCodes(output.code));
 };

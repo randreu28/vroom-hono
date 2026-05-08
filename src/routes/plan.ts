@@ -1,4 +1,5 @@
 import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
+import { $ } from "bun";
 import planRequestExample from "@/examples/plan_request.json";
 import planResponseExample from "@/examples/plan_response.json";
 import { jobsSchema } from "@/schemas/jobs";
@@ -6,12 +7,12 @@ import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
 import { shipmentsSchema } from "@/schemas/shipments";
 import { vehicleSchema, vehicleStepSchema } from "@/schemas/vehicles";
+import { vroomCodesToHttpCodes } from "@/utils";
 
 const planVehicleSchema = vehicleSchema.extend({
-	steps: z
-		.array(vehicleStepSchema)
-		.min(1)
-		.openapi({ description: "Required custom route description in plan mode." }),
+	steps: z.array(vehicleStepSchema).min(1).openapi({
+		description: "Required custom route description in plan mode.",
+	}),
 });
 
 const planRequestSchema = z.object({
@@ -87,15 +88,27 @@ export const planRoute = createRoute({
 	},
 });
 
-export const planHandler: RouteHandler<typeof planRoute> = (c) => {
-	c.req.valid("json");
+export const planHandler: RouteHandler<typeof planRoute> = async (c) => {
+	const payload = c.req.valid("json");
+	const input = new Response(JSON.stringify(payload), {
+		headers: { "content-type": "application/json" },
+	});
 
-	return c.json(
-		{
-			code: 1,
-			error: "Planning is not implemented.",
-		},
-		500,
-	);
+	// THe only real difference between plan and solve is the -c flag here
+	const { stdout } = await $`./vroom -c < ${input}`.nothrow().quiet();
+	const json = JSON.parse(stdout.toString("utf8"));
+
+	const res = outputSchema.safeParse(json);
+	if (!res.success) {
+		return c.json(
+			{
+				code: 1,
+				error: "Internal parsing failed",
+			},
+			500,
+		);
+	}
+	const output = res.data;
+
+	return c.json(output, vroomCodesToHttpCodes(output.code));
 };
-
