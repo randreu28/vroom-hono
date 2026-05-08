@@ -1,0 +1,7 @@
+services:
+  osrm:
+    build:
+      context: ./vroom-express-docker
+      dockerfile: Dockerfile.Osrm
+    ports:
+      - "5000:5000"
