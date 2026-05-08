@@ -11,7 +11,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.Hono
+      dockerfile: Dockerfile.Api
     environment:
       VROOM_OSRM_HOST: osrm
       VROOM_OSRM_PORT: "5000"
