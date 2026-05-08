@@ -6,7 +6,16 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": [
+			"src/**/*",
+			"package.json",
+			"tsconfig.json",
+			"biome.json",
+			"compose.yaml",
+			"README.md",
+			"!bun.lock"
+		]
 	},
 	"formatter": {
 		"enabled": true,

@@ -1,10 +1,14 @@
 {
   "name": "vroom-hono",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "types:check": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "^4.12.18"
+    "hono": "^4.12.18",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
