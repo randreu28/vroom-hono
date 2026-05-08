@@ -88,7 +88,11 @@ export const solveHandler: RouteHandler<typeof solveRoute> = async (c) => {
 		headers: { "content-type": "application/json" },
 	});
 
-	const { stdout } = await $`./vroom < ${input}`.nothrow().quiet();
+	const host = Bun.env.VROOM_OSRM_HOST ?? "localhost";
+	const port = Bun.env.VROOM_OSRM_PORT ?? "5000";
+	const { stdout } = await $`./vroom -a ${host} -p ${port} < ${input}`
+		.nothrow()
+		.quiet();
 	const json = JSON.parse(stdout.toString("utf8"));
 
 	const res = outputSchema.safeParse(json);

@@ -94,8 +94,12 @@ export const planHandler: RouteHandler<typeof planRoute> = async (c) => {
 		headers: { "content-type": "application/json" },
 	});
 
-	// THe only real difference between plan and solve is the -c flag here
-	const { stdout } = await $`./vroom -c < ${input}`.nothrow().quiet();
+	const host = Bun.env.VROOM_OSRM_HOST ?? "localhost";
+	const port = Bun.env.VROOM_OSRM_PORT ?? "5000";
+	// The -c flag tells vroom to run in plan mode.
+	const { stdout } = await $`./vroom -a ${host} -p ${port} -c < ${input}`
+		.nothrow()
+		.quiet();
 	const json = JSON.parse(stdout.toString("utf8"));
 
 	const res = outputSchema.safeParse(json);

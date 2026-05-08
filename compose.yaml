@@ -1,7 +1,27 @@
 services:
   osrm:
     build:
-      context: ./vroom-express-docker
+      context: .
       dockerfile: Dockerfile.Osrm
     ports:
       - "5000:5000"
+    networks:
+      - shared-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.Hono
+    environment:
+      VROOM_OSRM_HOST: osrm
+      VROOM_OSRM_PORT: "5000"
+    depends_on:
+      - osrm
+    networks:
+      - shared-network
+    ports:
+      - "3000:3000"
+
+networks:
+  shared-network:
+    driver: bridge

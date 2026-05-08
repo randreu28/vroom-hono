@@ -1,0 +1,49 @@
+FROM debian:trixie-slim AS vroom-builder
+
+WORKDIR /
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    build-essential \
+    g++-13 \
+    gcc-13 \
+    libssl-dev \
+    libasio-dev \
+    libglpk-dev \
+    pkg-config \
+  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 \
+  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 \
+  && rm -rf /var/lib/apt/lists/*
+
+ARG VROOM_RELEASE=master
+
+RUN git clone --branch master --single-branch --recurse-submodules https://github.com/VROOM-Project/vroom.git /vroom \
+  && make -C /vroom/src -j"$(nproc)"
+
+
+FROM oven/bun:1.3.13-slim AS runstage
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl3 \
+    libglpk40 \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=vroom-builder /vroom/bin/vroom /app/vroom
+
+COPY package.json bun.lock tsconfig.json /app/
+RUN bun install --production --frozen-lockfile
+
+COPY src /app/src
+COPY tests /app/tests
+
+ENV PORT=3000 \
+	VROOM_OSRM_HOST=127.0.0.1 \
+	VROOM_OSRM_PORT=5000
+EXPOSE 3000
+
+HEALTHCHECK --start-period=10s CMD curl --fail -s http://localhost:3000/health || exit 1
+
+CMD ["bun", "run", "src/index.ts"]
