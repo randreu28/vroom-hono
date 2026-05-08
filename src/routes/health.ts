@@ -2,6 +2,6 @@ import { Hono } from "hono";
 
 const health = new Hono();
 
-health.get("/health", (c) => c.json({ status: "operational" }));
+health.get("/", (c) => c.json({ status: "operational" }));
 
 export default health;
