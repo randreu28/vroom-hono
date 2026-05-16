@@ -1,5 +1,4 @@
 import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
-import { $ } from "bun";
 import planRequestExample from "@/examples/plan_request.json";
 import planResponseExample from "@/examples/plan_response.json";
 import { jobsSchema } from "@/schemas/jobs";
@@ -7,7 +6,8 @@ import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
 import { shipmentsSchema } from "@/schemas/shipments";
 import { vehicleSchema, vehicleStepSchema } from "@/schemas/vehicles";
-import { vroomCodesToHttpCodes } from "@/utils";
+import { runVroom } from "@/vroom";
+import { vroomCodesToHttpCodes } from "@/vroom/utils";
 
 const planVehicleSchema = vehicleSchema.extend({
 	steps: z.array(vehicleStepSchema).min(1).openapi({
@@ -90,29 +90,6 @@ export const planRoute = createRoute({
 
 export const planHandler: RouteHandler<typeof planRoute> = async (c) => {
 	const payload = c.req.valid("json");
-	const input = new Response(JSON.stringify(payload), {
-		headers: { "content-type": "application/json" },
-	});
-
-	const host = Bun.env.VROOM_OSRM_HOST ?? "localhost";
-	const port = Bun.env.VROOM_OSRM_PORT ?? "5000";
-	// The -c flag tells vroom to run in plan mode.
-	const { stdout } = await $`./vroom -a ${host} -p ${port} -c < ${input}`
-		.nothrow()
-		.quiet();
-	const json = JSON.parse(stdout.toString("utf8"));
-
-	const res = outputSchema.safeParse(json);
-	if (!res.success) {
-		return c.json(
-			{
-				code: 1,
-				error: "Internal parsing failed",
-			},
-			500,
-		);
-	}
-	const output = res.data;
-
+	const output = await runVroom({ payload, isPlanMode: true });
 	return c.json(output, vroomCodesToHttpCodes(output.code));
 };
