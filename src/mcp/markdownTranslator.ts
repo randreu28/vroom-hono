@@ -6,7 +6,7 @@ async function loadMarkdown(filename: string): Promise<string> {
 
 const [successMd, violationsMd, internalErrorMd, inputErrorMd, routingErrorMd] =
 	await Promise.all([
-		loadMarkdown("sucess.md"),
+		loadMarkdown("success.md"),
 		loadMarkdown("violations.md"),
 		loadMarkdown("internalError.md"),
 		loadMarkdown("inputError.md"),
