@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import { logger } from "hono/logger";
+import mcpServer from "@/mcp";
 import { healthHandler, healthRoute } from "@/routes/health";
 import { planHandler, planRoute } from "@/routes/plan";
 import { solveHandler, solveRoute } from "@/routes/solve";
@@ -12,6 +13,8 @@ app.use(logger());
 app.openapi(solveRoute, solveHandler);
 app.openapi(planRoute, planHandler);
 app.openapi(healthRoute, healthHandler);
+
+app.route("/mcp", mcpServer);
 
 app.doc("/docs.json", {
 	openapi: "3.0.0",
@@ -32,7 +35,6 @@ app.doc("/docs.json", {
 		},
 	],
 });
-
 app.get("/docs", Scalar({ url: "/docs.json" }));
 
 export default app;
