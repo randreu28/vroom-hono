@@ -1,6 +1,6 @@
 # Input error
 
-The request JSON is invalid or inconsistent with the VROOM input format.
+{inputError}
 
 ## Common causes
 
@@ -16,3 +16,9 @@ The request JSON is invalid or inconsistent with the VROOM input format.
 ## Troubleshooting
 
 Please check the [VROOM official documentation](https://raw.githubusercontent.com/VROOM-Project/vroom/refs/heads/master/docs/API.md) for more details.
+
+## Raw output
+
+```
+{rawOutput}
+```

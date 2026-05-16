@@ -1,6 +1,6 @@
 # Routing error
 
-VROOM faced an issue while routing the problem.
+{routingError}
 
 ## Common causes
 
@@ -17,3 +17,9 @@ VROOM faced an issue while routing the problem.
 ## Troubleshooting
 
 Please check the [VROOM official documentation](https://raw.githubusercontent.com/VROOM-Project/vroom/refs/heads/master/docs/API.md) for more details.
+
+## Raw output
+
+```
+{rawOutput}
+```

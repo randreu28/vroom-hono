@@ -38,15 +38,7 @@ mcp.registerTool(
 		const markdown = await markdownTranslator(output);
 
 		return {
-			content: [
-				{ type: "text", text: markdown },
-				// This is also required by the MCP specification
-				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
-				{
-					type: "text",
-					text: JSON.stringify(output, null, 2),
-				},
-			],
+			content: [{ type: "text", text: markdown }],
 			structuredContent: output,
 			isError: output.code !== 0,
 		};
@@ -68,15 +60,7 @@ mcp.registerTool(
 		const output = await runVroom({ payload: input, isPlanMode: true });
 		const markdown = await markdownTranslator(output);
 		return {
-			content: [
-				{ type: "text", text: markdown },
-				// This is also required by the MCP specification
-				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
-				{
-					type: "text",
-					text: JSON.stringify(output, null, 2),
-				},
-			],
+			content: [{ type: "text", text: markdown }],
 			structuredContent: output,
 			isError: output.code !== 0,
 		};
