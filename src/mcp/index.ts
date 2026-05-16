@@ -1,24 +1,16 @@
 import { createMcpHonoApp } from "@modelcontextprotocol/hono";
 import {
-	type CallToolResult,
 	McpServer,
 	WebStandardStreamableHTTPServerTransport,
 } from "@modelcontextprotocol/server";
-import { type Output, outputSchema } from "@/schemas/output";
+import { markdownTranslator } from "@/mcp/markdownTranslator";
+import { outputSchema } from "@/schemas/output";
 import {
 	healthResponseSchema,
 	planRequestSchema,
 	solveRequestSchema,
 } from "@/schemas/requests";
 import { runVroom } from "@/vroom";
-
-function vroomToolResult(output: Output): CallToolResult {
-	return {
-		content: [{ type: "text", text: JSON.stringify(output) }],
-		structuredContent: output,
-		isError: output.code !== 0,
-	};
-}
 
 const mcp = new McpServer(
 	{ name: "Vroom MCP", version: "1.0.0" },
@@ -41,7 +33,22 @@ mcp.registerTool(
 		inputSchema: solveRequestSchema,
 		outputSchema: outputSchema,
 	},
-	async (input) => vroomToolResult(await runVroom({ payload: input })),
+	async (input) => {
+		const output = await runVroom({ payload: input });
+		return {
+			content: [
+				{ type: "text", text: markdownTranslator(output) },
+				// This is also required by the MCP specification
+				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
+				{
+					type: "text",
+					text: JSON.stringify(output, null, 2),
+				},
+			],
+			structuredContent: output,
+			isError: output.code !== 0,
+		};
+	},
 );
 
 mcp.registerTool(
@@ -55,14 +62,28 @@ mcp.registerTool(
 		inputSchema: planRequestSchema,
 		outputSchema: outputSchema,
 	},
-	async (input) =>
-		vroomToolResult(await runVroom({ payload: input, isPlanMode: true })),
+	async (input) => {
+		const output = await runVroom({ payload: input, isPlanMode: true });
+		return {
+			content: [
+				{ type: "text", text: markdownTranslator(output) },
+				// This is also required by the MCP specification
+				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
+				{
+					type: "text",
+					text: JSON.stringify(output, null, 2),
+				},
+			],
+			structuredContent: output,
+			isError: output.code !== 0,
+		};
+	},
 );
 
 mcp.registerTool(
 	"vroom_health",
 	{
-		title: "VROOM Health",
+		title: " Health status",
 		description: "Check whether the VROOM MCP server is operational.",
 		outputSchema: healthResponseSchema,
 	},
