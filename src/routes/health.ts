@@ -1,8 +1,5 @@
-import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
-
-const healthResponseSchema = z.object({
-	status: z.string(),
-});
+import { createRoute, type RouteHandler } from "@hono/zod-openapi";
+import { healthResponseSchema } from "@/schemas/requests";
 
 export const healthRoute = createRoute({
 	method: "get",

@@ -1,26 +1,10 @@
-import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
+import { createRoute, type RouteHandler } from "@hono/zod-openapi";
 import planRequestExample from "@/examples/plan_request.json";
 import planResponseExample from "@/examples/plan_response.json";
-import { jobsSchema } from "@/schemas/jobs";
-import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
-import { shipmentsSchema } from "@/schemas/shipments";
-import { vehicleSchema, vehicleStepSchema } from "@/schemas/vehicles";
+import { planRequestSchema } from "@/schemas/requests";
 import { runVroom } from "@/vroom";
 import { vroomCodesToHttpCodes } from "@/vroom/utils";
-
-const planVehicleSchema = vehicleSchema.extend({
-	steps: z.array(vehicleStepSchema).min(1).openapi({
-		description: "Required custom route description in plan mode.",
-	}),
-});
-
-const planRequestSchema = z.object({
-	vehicles: z.array(planVehicleSchema).min(1),
-	jobs: jobsSchema.optional(),
-	shipments: shipmentsSchema.optional(),
-	matrices: matricesSchema.optional(),
-});
 
 export const planRoute = createRoute({
 	method: "post",

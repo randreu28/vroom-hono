@@ -1,20 +1,10 @@
-import { createRoute, type RouteHandler, z } from "@hono/zod-openapi";
+import { createRoute, type RouteHandler } from "@hono/zod-openapi";
 import solveRequestExample from "@/examples/solve_request.json";
 import solveResponseExample from "@/examples/solve_response.json";
-import { jobsSchema } from "@/schemas/jobs";
-import { matricesSchema } from "@/schemas/matrices";
 import { outputSchema } from "@/schemas/output";
-import { shipmentsSchema } from "@/schemas/shipments";
-import { vehiclesSchema } from "@/schemas/vehicles";
+import { solveRequestSchema } from "@/schemas/requests";
 import { runVroom } from "@/vroom";
 import { vroomCodesToHttpCodes } from "@/vroom/utils";
-
-const solveRequestSchema = z.object({
-	vehicles: vehiclesSchema,
-	jobs: jobsSchema.optional(),
-	shipments: shipmentsSchema.optional(),
-	matrices: matricesSchema.optional(),
-});
 
 export const solveRoute = createRoute({
 	method: "post",
