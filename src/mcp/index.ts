@@ -35,9 +35,11 @@ mcp.registerTool(
 	},
 	async (input) => {
 		const output = await runVroom({ payload: input });
+		const markdown = await markdownTranslator(output);
+
 		return {
 			content: [
-				{ type: "text", text: markdownTranslator(output) },
+				{ type: "text", text: markdown },
 				// This is also required by the MCP specification
 				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
 				{
@@ -64,9 +66,10 @@ mcp.registerTool(
 	},
 	async (input) => {
 		const output = await runVroom({ payload: input, isPlanMode: true });
+		const markdown = await markdownTranslator(output);
 		return {
 			content: [
-				{ type: "text", text: markdownTranslator(output) },
+				{ type: "text", text: markdown },
 				// This is also required by the MCP specification
 				// @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
 				{
