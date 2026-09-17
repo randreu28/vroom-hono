@@ -13,6 +13,12 @@ app.use(logger());
 app.openapi(solveRoute, solveHandler);
 app.openapi(planRoute, planHandler);
 app.openapi(healthRoute, healthHandler);
+app.get("/demo", async (c) => {
+	const file = Bun.file(new URL("./routes/demo.html", import.meta.url));
+	if (!(await file.exists())) return c.notFound();
+	return c.html(await file.text());
+});
+
 
 app.all("/mcp", (c) => mcpHandler.fetch(c.req.raw));
 

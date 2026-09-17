@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Vroom demo</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.css"
+		/>
+		<script src="https://unpkg.com/maplibre-gl@5.7.3/dist/maplibre-gl.js"></script>
+		<style>
+			html,
+			body {
+				height: 100%;
+			}
+			.maplibregl-ctrl-attrib {
+				font-size: 10px;
+			}
+			.marker {
+				min-width: 22px;
+				height: 22px;
+				padding: 0 5px;
+				border-radius: 9999px;
+				border: 2px solid #fff;
+				box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+				display: grid;
+				place-items: center;
+				color: #fff;
+				font-size: 10px;
+				font-weight: 700;
+			}
+		</style>
+	</head>
+	<body class="bg-zinc-950 text-zinc-100">
+		<div class="flex h-screen">
+			<aside
+				class="flex w-[22.5rem] shrink-0 flex-col border-r border-zinc-800 bg-zinc-950"
+			>
+				<header class="border-b border-zinc-800 px-4 py-3">
+					<div class="flex items-center justify-between gap-3">
+						<div>
+							<p class="text-sm font-semibold">Vroom demo</p>
+							<p class="text-xs text-zinc-400">Catalunya extract</p>
+						</div>
+						<p
+							id="health"
+							class="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-[10px] text-zinc-400"
+						>
+							…
+						</p>
+					</div>
+					<nav class="mt-2 flex items-center gap-3 text-zinc-400">
+						<a class="hover:text-amber-300" href="/docs" title="OpenAPI">
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+							<span class="sr-only">OpenAPI</span>
+						</a>
+						<a class="hover:text-amber-300" href="/docs.json" title="OpenAPI schema">
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>
+							<span class="sr-only">OpenAPI schema</span>
+						</a>
+						<a class="hover:text-amber-300" href="/mcp" title="MCP">
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+							<span class="sr-only">MCP</span>
+						</a>
+					</nav>
+				</header>
+
+				<div class="space-y-3 overflow-y-auto px-4 py-3 text-sm">
+					<p class="text-xs leading-relaxed text-zinc-400">
+						Click the map to place vehicles, jobs, or a shipment. Solve assigns
+						routes.
+					</p>
+
+					<div>
+						<ul class="mb-2 list-disc space-y-0.5 pl-4 text-[11px] leading-relaxed text-zinc-500">
+							<li>Vehicle: depot a van starts and ends at</li>
+							<li>Job: one stop</li>
+							<li>Shipment: pick up at A, drop off at B, same van, in that order</li>
+						</ul>
+						<div class="grid grid-cols-3 gap-1">
+							<button type="button" data-tool="vehicle" class="tool">
+								Vehicle
+							</button>
+							<button type="button" data-tool="job" class="tool">Job</button>
+							<button type="button" data-tool="shipment" class="tool">
+								Shipment
+							</button>
+						</div>
+						<p id="hint" class="mt-1 text-[11px] text-zinc-500">
+							Click the map to add a job.
+						</p>
+					</div>
+
+					<div class="flex gap-1">
+						<select
+							id="sample"
+							class="flex-1 rounded-md bg-zinc-800 px-2 py-1.5 text-xs"
+						>
+							<option value="city">Barcelona city</option>
+							<option value="split">Two vans</option>
+							<option value="haul">Shipments</option>
+						</select>
+						<button
+							id="clear"
+							type="button"
+							class="rounded-md bg-zinc-800 px-2 py-1.5 text-xs hover:bg-zinc-700"
+						>
+							Clear
+						</button>
+					</div>
+
+					<button
+						id="solve"
+						type="button"
+						class="w-full rounded-md bg-amber-400 px-2 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-300"
+					>
+						Solve
+					</button>
+
+					<div>
+						<p class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">
+							Problem
+						</p>
+						<ul
+							id="problem"
+							class="max-h-40 space-y-0.5 overflow-y-auto font-mono text-[11px] text-zinc-300"
+						></ul>
+					</div>
+
+					<div>
+						<p class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">
+							Result
+						</p>
+						<div
+							id="result"
+							class="rounded-md bg-zinc-900 p-2 font-mono text-[11px] leading-relaxed text-zinc-300"
+						>
+							No run yet.
+						</div>
+					</div>
+				</div>
+			</aside>
+			<div class="relative min-w-0 flex-1">
+				<div id="map" class="absolute inset-0"></div>
+			</div>
+		</div>
+
+		<script>
+			const COLORS = [
+				"#fbbf24",
+				"#38bdf8",
+				"#f472b6",
+				"#34d399",
+				"#a78bfa",
+				"#fb923c",
+			];
+			const MARK = {
+				vehicle: "#f59e0b",
+				job: "#38bdf8",
+				pickup: "#34d399",
+				delivery: "#f43f5e",
+			};
+			const TOOL_ON =
+				"tool rounded-md bg-amber-400 px-2 py-1.5 text-xs font-medium text-zinc-950";
+			const TOOL_OFF =
+				"tool rounded-md bg-zinc-800 px-2 py-1.5 text-xs hover:bg-zinc-700";
+
+			const SAMPLES = {
+				city: {
+					vehicles: [
+						{
+							id: 1,
+							description: "Barcelona van",
+							start: [2.17, 41.387],
+							end: [2.17, 41.387],
+							capacity: [6],
+						},
+					],
+					jobs: [
+						{
+							id: 101,
+							description: "Sagrada Família",
+							location: [2.1744, 41.4036],
+							service: 300,
+							delivery: [1],
+						},
+						{
+							id: 102,
+							description: "Barceloneta",
+							location: [2.1895, 41.3809],
+							service: 240,
+							delivery: [1],
+						},
+						{
+							id: 103,
+							description: "Gràcia",
+							location: [2.1624, 41.4024],
+							service: 240,
+							delivery: [1],
+						},
+						{
+							id: 104,
+							description: "Montjuïc",
+							location: [2.1631, 41.364],
+							service: 300,
+							delivery: [1],
+						},
+						{
+							id: 105,
+							description: "Park Güell",
+							location: [2.1527, 41.4145],
+							service: 240,
+							delivery: [1],
+						},
+					],
+					shipments: [],
+				},
+				split: {
+					vehicles: [
+						{
+							id: 1,
+							description: "Barcelona van",
+							start: [2.1686, 41.3874],
+							end: [2.1686, 41.3874],
+							capacity: [5],
+							skills: [1],
+						},
+						{
+							id: 2,
+							description: "Girona van",
+							start: [2.8214, 41.9794],
+							end: [2.8214, 41.9794],
+							capacity: [5],
+							skills: [2],
+						},
+					],
+					jobs: [
+						{
+							id: 101,
+							description: "Sagrada Família",
+							location: [2.1744, 41.4036],
+							service: 300,
+							delivery: [1],
+						},
+						{
+							id: 102,
+							description: "Sitges",
+							location: [1.811, 41.2372],
+							service: 420,
+							delivery: [1],
+							skills: [1],
+						},
+						{
+							id: 103,
+							description: "Tarragona",
+							location: [1.2445, 41.1189],
+							service: 600,
+							delivery: [1],
+							skills: [1],
+						},
+						{
+							id: 104,
+							description: "Reus",
+							location: [1.1046, 41.1561],
+							service: 420,
+							delivery: [1],
+							skills: [1],
+						},
+						{
+							id: 105,
+							description: "Lleida",
+							location: [0.6222, 41.6176],
+							service: 600,
+							delivery: [1],
+						},
+						{
+							id: 106,
+							description: "Manresa",
+							location: [1.8266, 41.7265],
+							service: 300,
+							delivery: [1],
+						},
+						{
+							id: 107,
+							description: "Vic",
+							location: [2.2546, 41.9304],
+							service: 420,
+							delivery: [1],
+							skills: [2],
+						},
+						{
+							id: 108,
+							description: "Figueres",
+							location: [2.965, 42.2666],
+							service: 420,
+							delivery: [1],
+							skills: [2],
+						},
+					],
+					shipments: [
+						{
+							amount: [1],
+							skills: [2],
+							pickup: {
+								id: 201,
+								description: "Girona warehouse",
+								service: 300,
+								location: [2.819, 41.983],
+							},
+							delivery: {
+								id: 202,
+								description: "Barcelona port",
+								service: 300,
+								location: [2.1834, 41.3751],
+							},
+						},
+					],
+				},
+				haul: {
+					vehicles: [
+						{
+							id: 1,
+							description: "Barcelona van",
+							start: [2.1686, 41.3874],
+							end: [2.1686, 41.3874],
+							capacity: [4],
+						},
+						{
+							id: 2,
+							description: "Girona van",
+							start: [2.8214, 41.9794],
+							end: [2.8214, 41.9794],
+							capacity: [4],
+						},
+					],
+					jobs: [],
+					shipments: [
+						{
+							amount: [1],
+							pickup: {
+								id: 201,
+								description: "Sitges",
+								service: 300,
+								location: [1.811, 41.2372],
+							},
+							delivery: {
+								id: 202,
+								description: "Barcelona port",
+								service: 300,
+								location: [2.1834, 41.3751],
+							},
+						},
+						{
+							amount: [1],
+							pickup: {
+								id: 203,
+								description: "Tarragona",
+								service: 360,
+								location: [1.2445, 41.1189],
+							},
+							delivery: {
+								id: 204,
+								description: "Reus",
+								service: 240,
+								location: [1.1046, 41.1561],
+							},
+						},
+						{
+							amount: [1],
+							pickup: {
+								id: 205,
+								description: "Figueres",
+								service: 300,
+								location: [2.965, 42.2666],
+							},
+							delivery: {
+								id: 206,
+								description: "Girona warehouse",
+								service: 300,
+								location: [2.819, 41.983],
+							},
+						},
+						{
+							amount: [1],
+							pickup: {
+								id: 207,
+								description: "Lleida",
+								service: 360,
+								location: [0.6222, 41.6176],
+							},
+							delivery: {
+								id: 208,
+								description: "Manresa",
+								service: 240,
+								location: [1.8266, 41.7265],
+							},
+						},
+					],
+				},
+			};
+
+			let tool = "job";
+			let pendingPickup = null;
+			let nextId = 1;
+			let vehicles = [];
+			let jobs = [];
+			let shipments = [];
+			let markers = [];
+			let routeIds = [];
+			let lastRoutes = null;
+
+			const byId = (id) => document.getElementById(id);
+			const resultEl = byId("result");
+
+			const map = new maplibregl.Map({
+				container: "map",
+				style: "https://tiles.openfreemap.org/styles/dark",
+				center: [1.8, 41.6],
+				zoom: 7.2,
+			});
+			map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+			function loadSample(key) {
+				const sample = SAMPLES[key] ?? SAMPLES.city;
+				vehicles = structuredClone(sample.vehicles);
+				jobs = structuredClone(sample.jobs);
+				shipments = structuredClone(sample.shipments);
+				nextId = nextSampleId(sample);
+				wipe();
+				fitProblem();
+			}
+
+			function nextSampleId(sample) {
+				let n = 0;
+				for (const v of sample.vehicles) n = Math.max(n, v.id);
+				for (const j of sample.jobs) n = Math.max(n, j.id);
+				for (const s of sample.shipments) {
+					n = Math.max(n, s.pickup.id, s.delivery.id);
+				}
+				return n + 1;
+			}
+
+			function fitProblem() {
+				const bounds = new maplibregl.LngLatBounds();
+				let any = false;
+				for (const v of vehicles) {
+					bounds.extend(v.start);
+					any = true;
+				}
+				for (const j of jobs) {
+					bounds.extend(j.location);
+					any = true;
+				}
+				for (const s of shipments) {
+					bounds.extend(s.pickup.location);
+					bounds.extend(s.delivery.location);
+					any = true;
+				}
+				if (any) {
+					map.fitBounds(bounds, { padding: 64, duration: 600, maxZoom: 13 });
+				}
+			}
+
+			function clearAll() {
+				vehicles = [];
+				jobs = [];
+				shipments = [];
+				nextId = 1;
+				wipe();
+			}
+
+			async function run() {
+				if (!vehicles.length) {
+					resultEl.textContent = "Add at least one vehicle.";
+					return;
+				}
+				resultEl.textContent = "solve…";
+				try {
+					const res = await fetch("/solve", {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify(payload()),
+					});
+					const text = await res.text();
+					let data;
+					try {
+						data = JSON.parse(text);
+					} catch {
+						resultEl.textContent = text.slice(0, 400);
+						return;
+					}
+					if (!res.ok || data.code) {
+						resultEl.textContent = data.error ?? JSON.stringify(data, null, 2);
+						clearRoutes();
+						redraw();
+						return;
+					}
+					drawRoutes(data.routes);
+					const s = data.summary ?? {};
+					const lines = [
+						`solve  code ${data.code}`,
+						`routes ${s.routes ?? 0}  unassigned ${s.unassigned ?? 0}`,
+						`travel ${fmtDur(s.duration)}  distance ${fmtKm(s.distance)}  cost ${s.cost ?? "—"}`,
+					];
+					for (const route of data.routes ?? []) {
+						lines.push(
+							`van ${route.vehicle}  ${fmtDur(route.duration)}  ${fmtKm(route.distance)}`,
+						);
+					}
+					for (const u of data.unassigned ?? []) {
+						lines.push(`unassigned ${u.type} ${u.id}`);
+					}
+					resultEl.textContent = lines.join("\n");
+				} catch (err) {
+					resultEl.textContent = String(err);
+				}
+			}
+
+			function payload() {
+				const body = { vehicles: vehicles.map((v) => ({ ...v })) };
+				if (jobs.length) body.jobs = jobs;
+				if (shipments.length) body.shipments = shipments;
+				return body;
+			}
+
+			function drawRoutes(routes) {
+				removeRouteLayers();
+				lastRoutes = routes ?? [];
+				if (!map.isStyleLoaded()) {
+					redraw();
+					return;
+				}
+				const bounds = new maplibregl.LngLatBounds();
+				lastRoutes.forEach((route, i) => {
+					if (!route.geometry) return;
+					const coords = decodePolyline(route.geometry);
+					if (!coords.length) return;
+					const id = `route-${i}`;
+					routeIds.push(id);
+					map.addSource(id, {
+						type: "geojson",
+						data: {
+							type: "Feature",
+							geometry: { type: "LineString", coordinates: coords },
+						},
+					});
+					map.addLayer({
+						id: `${id}-casing`,
+						type: "line",
+						source: id,
+						paint: {
+							"line-color": "#09090b",
+							"line-width": 6,
+							"line-opacity": 0.9,
+						},
+					});
+					map.addLayer({
+						id,
+						type: "line",
+						source: id,
+						paint: {
+							"line-color": COLORS[i % COLORS.length],
+							"line-width": 3.5,
+						},
+					});
+					for (const c of coords) bounds.extend(c);
+				});
+				if (!bounds.isEmpty()) {
+					map.fitBounds(bounds, { padding: 56, duration: 700 });
+				}
+				redraw();
+			}
+
+			function redraw() {
+				for (const m of markers) m.remove();
+				markers = [];
+				const labels = stopLabels();
+				for (const v of vehicles) {
+					const hit = labels?.get(`vehicle:${v.id}`);
+					addMarker(v.start, hit?.color ?? MARK.vehicle, hit ? "" : `V${v.id}`);
+				}
+				for (const j of jobs) {
+					const hit = labels?.get(`job:${j.id}`);
+					addMarker(
+						j.location,
+						hit?.color ?? MARK.job,
+						hit ? String(hit.n) : `J${j.id}`,
+					);
+				}
+				for (const s of shipments) {
+					const pick = labels?.get(`pickup:${s.pickup.id}`);
+					const drop = labels?.get(`delivery:${s.delivery.id}`);
+					addMarker(
+						s.pickup.location,
+						pick?.color ?? MARK.pickup,
+						pick ? String(pick.n) : `P${s.pickup.id}`,
+					);
+					addMarker(
+						s.delivery.location,
+						drop?.color ?? MARK.delivery,
+						drop ? String(drop.n) : `D${s.delivery.id}`,
+					);
+				}
+				const list = byId("problem");
+				list.replaceChildren();
+				const rows = [
+					...vehicles.map(
+						(v) =>
+							`V${v.id} ${v.description ?? "depot"}  skills ${JSON.stringify(v.skills ?? [])}`,
+					),
+					...jobs.map(
+						(j) =>
+							`J${j.id} ${j.description ?? "job"}  skills ${JSON.stringify(j.skills ?? [])}`,
+					),
+					...shipments.map(
+						(s) =>
+							`S ${s.pickup.description ?? "pickup"} → ${s.delivery.description ?? "delivery"}`,
+					),
+				];
+				if (!rows.length) {
+					const li = document.createElement("li");
+					li.className = "text-zinc-500";
+					li.textContent = "Empty. Load the sample or click the map.";
+					list.append(li);
+					return;
+				}
+				for (const line of rows) {
+					const li = document.createElement("li");
+					li.textContent = line;
+					list.append(li);
+				}
+			}
+
+			function wipe() {
+				pendingPickup = null;
+				clearRoutes();
+				resultEl.textContent = "No run yet.";
+				redraw();
+			}
+
+			function setTool(next) {
+				tool = next;
+				if (next !== "shipment") pendingPickup = null;
+				for (const btn of document.querySelectorAll(".tool")) {
+					btn.className = btn.dataset.tool === tool ? TOOL_ON : TOOL_OFF;
+				}
+				hint();
+			}
+
+			function hint() {
+				const el = byId("hint");
+				if (tool === "vehicle")
+					el.textContent = "Click the map to place a depot.";
+				else if (tool === "shipment" && !pendingPickup)
+					el.textContent = "Click the pickup, then the delivery.";
+				else if (tool === "shipment")
+					el.textContent = "Click the delivery point.";
+				else el.textContent = "Click the map to add a stop.";
+			}
+
+			function stopLabels() {
+				if (!lastRoutes?.length) return null;
+				const labels = new Map();
+				lastRoutes.forEach((route, i) => {
+					const color = COLORS[i % COLORS.length];
+					labels.set(`vehicle:${route.vehicle}`, { n: 0, color });
+					let n = 0;
+					for (const st of route.steps ?? []) {
+						if (st.type === "start" || st.type === "end" || st.type === "break")
+							continue;
+						n += 1;
+						labels.set(`${st.type}:${st.id}`, { n, color });
+					}
+				});
+				return labels;
+			}
+
+			function addMarker(coord, color, label) {
+				const el = document.createElement("div");
+				el.className = "marker";
+				el.style.background = color;
+				el.textContent = label;
+				markers.push(
+					new maplibregl.Marker({ element: el }).setLngLat(coord).addTo(map),
+				);
+			}
+
+			function removeRouteLayers() {
+				for (const id of routeIds) {
+					if (map.getLayer(`${id}-casing`)) map.removeLayer(`${id}-casing`);
+					if (map.getLayer(id)) map.removeLayer(id);
+					if (map.getSource(id)) map.removeSource(id);
+				}
+				routeIds = [];
+			}
+
+			function clearRoutes() {
+				lastRoutes = null;
+				removeRouteLayers();
+			}
+
+			function decodePolyline(str) {
+				let i = 0;
+				let lat = 0;
+				let lng = 0;
+				const coords = [];
+				const pull = () => {
+					let result = 0;
+					let shift = 0;
+					let b;
+					do {
+						b = str.charCodeAt(i++) - 63;
+						result |= (b & 31) << shift;
+						shift += 5;
+					} while (b >= 32);
+					return result & 1 ? ~(result >> 1) : result >> 1;
+				};
+				while (i < str.length) {
+					lat += pull();
+					lng += pull();
+					coords.push([lng / 1e5, lat / 1e5]);
+				}
+				return coords;
+			}
+
+			function fmtDur(s) {
+				if (s == null) return "—";
+				const h = Math.floor(s / 3600);
+				const m = Math.floor((s % 3600) / 60);
+				return h ? `${h}h ${m}m` : `${m}m`;
+			}
+
+			function fmtKm(m) {
+				return m == null ? "—" : `${(m / 1000).toFixed(1)} km`;
+			}
+
+			map.on("click", (e) => {
+				const loc = [
+					Math.round(e.lngLat.lng * 1e5) / 1e5,
+					Math.round(e.lngLat.lat * 1e5) / 1e5,
+				];
+				if (tool === "vehicle") {
+					const id = nextId++;
+					vehicles.push({
+						id,
+						description: `Depot ${id}`,
+						start: loc,
+						end: loc,
+						capacity: [5],
+					});
+				} else if (tool === "shipment") {
+					if (!pendingPickup) {
+						pendingPickup = loc;
+						hint();
+						return;
+					}
+					const pid = nextId++;
+					const did = nextId++;
+					shipments.push({
+						amount: [1],
+						pickup: {
+							id: pid,
+							description: `Pickup ${pid}`,
+							service: 300,
+							location: pendingPickup,
+						},
+						delivery: {
+							id: did,
+							description: `Delivery ${did}`,
+							service: 300,
+							location: loc,
+						},
+					});
+					pendingPickup = null;
+				} else {
+					const id = nextId++;
+					jobs.push({
+						id,
+						description: `Job ${id}`,
+						location: loc,
+						service: 300,
+						delivery: [1],
+					});
+				}
+				clearRoutes();
+				hint();
+				redraw();
+			});
+
+			for (const btn of document.querySelectorAll(".tool")) {
+				btn.addEventListener("click", () => setTool(btn.dataset.tool));
+			}
+			byId("sample").addEventListener("change", (e) => loadSample(e.target.value));
+			byId("clear").addEventListener("click", clearAll);
+			byId("solve").addEventListener("click", run);
+
+			fetch("/health")
+				.then((r) => r.json())
+				.then((d) => {
+					const el = byId("health");
+					el.textContent = d.status
+						? d.status[0].toUpperCase() + d.status.slice(1)
+						: "Ok";
+					el.className =
+						"rounded-full bg-emerald-950 px-2 py-0.5 font-mono text-[10px] text-emerald-400";
+				})
+				.catch(() => {
+					const el = byId("health");
+					el.textContent = "down";
+					el.className =
+						"rounded-full bg-red-950 px-2 py-0.5 font-mono text-[10px] text-red-400";
+				});
+
+			setTool("job");
+			map.on("load", () => loadSample(byId("sample").value));
+		</script>
+	</body>
+</html>
