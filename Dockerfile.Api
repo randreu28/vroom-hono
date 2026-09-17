@@ -22,7 +22,7 @@ RUN git clone --branch master --single-branch --recurse-submodules https://githu
   && make -C /vroom/src -j"$(nproc)"
 
 
-FROM oven/bun:1.3.13-slim AS runstage
+FROM oven/bun:1.4.2-slim AS runstage
 
 WORKDIR /app
 
