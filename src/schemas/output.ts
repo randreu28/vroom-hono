@@ -158,7 +158,9 @@ export const routeSchema = z
 			example: "Van 1",
 		}),
 		geometry: z.string().optional().openapi({
-			description: "Polyline-encoded route geometry.",
+			description:
+				"Google encoded polyline for the full route, if the request uses coordinates.",
+			example: "skihH_wiMIbC",
 		}),
 		distance: z.number().int().nonnegative().optional().openapi({
 			description: "Total route distance.",
