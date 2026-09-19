@@ -6,7 +6,7 @@ export const durationSchema = z.number().int().nonnegative();
 
 export const locationSchema = z.tuple([z.number(), z.number()]).openapi({
 	description: "Coordinates in [longitude, latitude] order.",
-	example: [2.1734, 41.3851],
+	example: [-90.5133, 14.6419],
 });
 
 export const locationIndexSchema = z.number().int().nonnegative();

@@ -11,10 +11,10 @@ test("/plan happy path (e2e)", async () => {
 				{
 					id: 1,
 					profile: "car",
-					description: "Catalunya van",
+					description: "Guatemala van",
 					// Note: API expects [longitude, latitude]
-					start: [2.1686, 41.3874],
-					end: [2.1686, 41.3874],
+					start: [-90.5133, 14.6419],
+					end: [-90.5133, 14.6419],
 					time_window: [0, 43200],
 					steps: [
 						{ type: "start" },
@@ -29,26 +29,26 @@ test("/plan happy path (e2e)", async () => {
 			jobs: [
 				{
 					id: 101,
-					description: "Pickup near Sagrada Família (Barcelona)",
-					location: [2.1744, 41.4036],
+					description: "Pickup in Antigua",
+					location: [-90.7344, 14.5586],
 					service: 600,
 				},
 				{
 					id: 102,
-					description: "Stop in Girona",
-					location: [2.8214, 41.9794],
+					description: "Stop in Quetzaltenango",
+					location: [-91.5189, 14.8347],
 					service: 900,
 				},
 				{
 					id: 103,
-					description: "Stop in Tarragona",
-					location: [1.2445, 41.1189],
+					description: "Stop in Escuintla",
+					location: [-90.785, 14.305],
 					service: 900,
 				},
 				{
 					id: 104,
-					description: "Stop in Lleida",
-					location: [0.6222, 41.6176],
+					description: "Stop in Puerto Barrios",
+					location: [-88.5947, 15.7278],
 					service: 900,
 				},
 			],
@@ -72,8 +72,8 @@ test("/plan rejects invalid payload (schema validation) (e2e)", async () => {
 			vehicles: [
 				{
 					id: 1,
-					start: [2.1686, 41.3874],
-					end: [2.1686, 41.3874],
+					start: [-90.5133, 14.6419],
+					end: [-90.5133, 14.6419],
 					// invalid: start > end
 					time_window: [100, 0],
 					steps: [{ type: "start" }, { type: "end" }],
@@ -95,13 +95,13 @@ test("/plan returns vroom input error when steps reference missing job (e2e)", a
 			vehicles: [
 				{
 					id: 1,
-					start: [2.1686, 41.3874],
-					end: [2.1686, 41.3874],
+					start: [-90.5133, 14.6419],
+					end: [-90.5133, 14.6419],
 					time_window: [0, 43200],
 					steps: [{ type: "start" }, { type: "job", id: 999 }, { type: "end" }],
 				},
 			],
-			jobs: [{ id: 101, location: [2.1744, 41.4036], service: 600 }],
+			jobs: [{ id: 101, location: [-90.7344, 14.5586], service: 600 }],
 		}),
 	});
 

@@ -22,6 +22,9 @@ export async function runVroom({
 
 	const json = JSON.parse(stdout.toString("utf8"));
 	const res = outputSchema.safeParse(json);
+	res.data?.routes?.forEach((route) => {
+		route.geometry= "";
+	});
 	if (!res.success) {
 		return {
 			code: 1,

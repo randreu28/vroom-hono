@@ -2,15 +2,15 @@ FROM ghcr.io/project-osrm/osrm-backend
 
 WORKDIR /data
 
-# Gets the Catalunya dataset
+# Gets the Guatemala dataset
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-RUN wget http://download.geofabrik.de/europe/spain/cataluna-latest.osm.pbf
+RUN wget http://download.geofabrik.de/central-america/guatemala-latest.osm.pbf
 
 # Generates some configuration files with said dataset
-RUN osrm-extract -p /opt/car.lua cataluna-latest.osm.pbf
-RUN osrm-partition cataluna-latest.osrm
-RUN osrm-customize cataluna-latest.osrm
+RUN osrm-extract -p /opt/car.lua guatemala-latest.osm.pbf
+RUN osrm-partition guatemala-latest.osrm
+RUN osrm-customize guatemala-latest.osrm
 
 # Spins up
-CMD ["osrm-routed", "--algorithm", "mld", "/data/cataluna-latest.osrm"]
+CMD ["osrm-routed", "--algorithm", "mld", "/data/guatemala-latest.osrm"]
